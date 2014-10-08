@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 
 #define FAN_SPEED_REG_LEFT 0xf2
 #define FAN_SPEED_REG_RIGHT 0xf3
@@ -14,18 +15,22 @@
 #define EC_DATA 0x62
 #define CPU_TEMP_0 0x57
 #define CRITICAL_TEMP 85
+#define SLEEP_TIME 10000 // Wait until EC parse command in microseconds
+#define UPDATE_TIME 5 // How often check temp and fix fan speed in seconds
 
 //odd index is fan speed(1..255), even index is temp. Critical temp is 85
 unsigned char temp_table[] = {0, MIN_SPEED, 55, 0xE0, 60, 0xAF, 65, 0x7F, 70, 0x4B, 75, 0x33, 80, 0x1A, CRITICAL_TEMP, MAX_SPEED};
 
+bool has_permissions = false;
+
 unsigned char read_register(unsigned char address) {
-    usleep(1000);
+    usleep(SLEEP_TIME);
     outb(READ_EC, EC_CMD);
-    usleep(1000);
+    usleep(SLEEP_TIME);
     outb(address, EC_DATA);
-    usleep(1000);
+    usleep(SLEEP_TIME);
     unsigned char data = inb(EC_DATA);
-    usleep(1000);
+    usleep(SLEEP_TIME);
 
     return data;
 }
@@ -35,13 +40,13 @@ unsigned char read_temp() {
 }
 
 void write_register(unsigned char value, unsigned char address) {
-    usleep(1000);
+    usleep(SLEEP_TIME);
     outb(WRITE_EC, EC_CMD);
-    usleep(1000);
+    usleep(SLEEP_TIME);
     outb(address, EC_DATA);
-    usleep(1000);
+    usleep(SLEEP_TIME);
     outb(value, EC_DATA);
-    usleep(1000);
+    usleep(SLEEP_TIME);
 }
 
 void default_mode() {
@@ -79,23 +84,39 @@ void show_registers() {
     printf("\n");
 }
 
+void handler(int signal) {
+    if (has_permissions) {
+        default_mode();
+
+        printf("Set default fan controlling\n");
+        if (ioperm(0x62, 5, 0)) {
+            perror("Can't close port");
+        }
+        has_permissions = false;
+    }
+
+    exit(0);
+}
+
 int main() {
     if (ioperm(0x62, 5, 1)) {
         perror("You must run programm as root");
+        has_permissions = false;
         exit(1);
     }
+    has_permissions = true;
 
-    //silence_mode();
-    //default_mode();
+    struct sigaction sigint_handler;
+
+    sigint_handler.sa_handler = handler;
+    sigemptyset(&sigint_handler.sa_mask);
+    sigint_handler.sa_flags = 0;
+
+    sigaction(SIGINT, &sigint_handler, NULL);
+
     while(true) {
         auto_mod();
         printf("temp=%d\n%d %d\n", read_temp(), read_register(FAN_SPEED_REG_LEFT), read_register(FAN_SPEED_REG_RIGHT));
-        sleep(5);
+        sleep(UPDATE_TIME);
     }
-    printf("Done\n");
-    if (ioperm(0x62, 5, 0)) {
-        perror("Can't close port");
-    }
-
-    return 0;
 }
