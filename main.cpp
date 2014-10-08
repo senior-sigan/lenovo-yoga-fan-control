@@ -12,8 +12,13 @@
 #define WRITE_EC 0x81
 #define EC_CMD 0x66
 #define EC_DATA 0x62
+#define CPU_TEMP_0 0x57
+#define CRITICAL_TEMP 85
 
-unsigned char read_fan_speed(unsigned char address) {
+//odd index is fan speed(1..255), even index is temp. Critical temp is 85
+unsigned char temp_table[] = {0, MIN_SPEED, 55, 0xE0, 60, 0xAF, 65, 0x7F, 70, 0x4B, 75, 0x33, 80, 0x1A, CRITICAL_TEMP, MAX_SPEED};
+
+unsigned char read_register(unsigned char address) {
     usleep(1000);
     outb(READ_EC, EC_CMD);
     usleep(1000);
@@ -25,7 +30,11 @@ unsigned char read_fan_speed(unsigned char address) {
     return data;
 }
 
-void write_fan_speed(unsigned char value, unsigned char address) {
+unsigned char read_temp() {
+    return read_register(CPU_TEMP_0);
+}
+
+void write_register(unsigned char value, unsigned char address) {
     usleep(1000);
     outb(WRITE_EC, EC_CMD);
     usleep(1000);
@@ -36,13 +45,28 @@ void write_fan_speed(unsigned char value, unsigned char address) {
 }
 
 void default_mode() {
-    write_fan_speed(FAN_AUTO_MOD, FAN_SPEED_REG_LEFT);
-    write_fan_speed(FAN_AUTO_MOD, FAN_SPEED_REG_RIGHT);
+    write_register(FAN_AUTO_MOD, FAN_SPEED_REG_LEFT);
+    write_register(FAN_AUTO_MOD, FAN_SPEED_REG_RIGHT);
 }
 
 void silence_mode() {
-    write_fan_speed(MIN_SPEED, FAN_SPEED_REG_LEFT);
-    write_fan_speed(MIN_SPEED, FAN_SPEED_REG_RIGHT);
+    write_register(MIN_SPEED, FAN_SPEED_REG_LEFT);
+    write_register(MIN_SPEED, FAN_SPEED_REG_RIGHT);
+}
+
+void auto_mod() {
+    unsigned char temp = read_temp();
+    if (temp < 0) {
+        silence_mode();
+        return;
+    }
+    for (unsigned int i = 0; i < sizeof(temp_table); i += 2) {
+        if (temp < temp_table[i]) {
+            write_register(temp_table[i-1], FAN_SPEED_REG_RIGHT);
+            write_register(temp_table[i-1], FAN_SPEED_REG_LEFT);
+            return;
+        }
+    }
 }
 
 void show_registers() {
@@ -50,7 +74,7 @@ void show_registers() {
         if (i % 16 == 0) {
             printf("\n");
         }
-        printf("%d\t",read_fan_speed(i));
+        printf("%d\t", read_register(i));
     }
     printf("\n");
 }
@@ -62,8 +86,12 @@ int main() {
     }
 
     //silence_mode();
-    default_mode();
-    printf("%d %d\n",read_fan_speed(FAN_SPEED_REG_LEFT), read_fan_speed(FAN_SPEED_REG_RIGHT));
+    //default_mode();
+    while(true) {
+        auto_mod();
+        printf("temp=%d\n%d %d\n", read_temp(), read_register(FAN_SPEED_REG_LEFT), read_register(FAN_SPEED_REG_RIGHT));
+        sleep(5);
+    }
     printf("Done\n");
     if (ioperm(0x62, 5, 0)) {
         perror("Can't close port");
