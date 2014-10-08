@@ -15,6 +15,20 @@ The fan is connected to a fan controller in the EC, which allows the fan speed t
 
 This program works in automatic mode. It's controling Fan with my custom temp table. You should run it as root in background. I plane to make linux kernel with this functioanlity. 
 
+### HowTo use
+
+You can compile program from source or use latest release(builded in Ubuntu 14.04).
+
+Compiling from sourse:
+```bash
+sudo apt-get install gcc-4.9-base cmake git
+git clone https://github.com/blan4/lenovo-yoga-fan-control.git
+cd lenovo-yoga-fan-control
+cmake
+make
+sudo ./lenovo-yoga-fan-control
+```
+
 ### Useful links
 
 [Ec specification](http://wiki.laptop.org/go/Ec_specification)
