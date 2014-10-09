@@ -1,7 +1,7 @@
 lenovo-yoga-fan-control
 =======================
 
-Program for Linux OS to control Fan Speed on Lenovo Yoga 13. 
+Program for Linux-based OS to control Fan Speed on Lenovo Yoga 13. 
 
 Inside the Lenovo Yoga is an embedded controller (EC), which is responsible for some of the Yoga's low-level tasks. One of them is Fan controling.
 
