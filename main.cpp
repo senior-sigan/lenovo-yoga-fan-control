@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <sys/syslog.h>
 
 #define FAN_SPEED_REG_LEFT 0xf2
 #define FAN_SPEED_REG_RIGHT 0xf3
@@ -22,6 +24,8 @@
 unsigned char temp_table[] = {0, MIN_SPEED, 55, 0xE0, 60, 0xAF, 65, 0x7F, 70, 0x4B, 75, 0x33, 80, 0x1A, CRITICAL_TEMP, MAX_SPEED};
 
 bool has_permissions = false;
+bool g_terminated = false;
+const char PID_FILE[] = "/var/run/yoga_fan_control.pid";
 
 unsigned char read_register(unsigned char address) {
     usleep(SLEEP_TIME);
@@ -85,38 +89,87 @@ void show_registers() {
 }
 
 void handler(int signal) {
+    syslog(LOG_NOTICE, "Set default fan controlling.");
     if (has_permissions) {
         default_mode();
 
-        printf("Set default fan controlling\n");
         if (ioperm(0x62, 5, 0)) {
-            perror("Can't close port");
+            syslog(LOG_ERR, "IOperm error. Can't return access on ports 0x62 to 0x66");
         }
         has_permissions = false;
     }
 
-    exit(0);
+    g_terminated = true;
+}
+
+static void start_daemon() {
+    pid_t pid;
+    pid = fork();
+    if (pid < 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid > 0 ) {
+        exit(EXIT_SUCCESS);
+    }
+
+    if (setsid() < 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    pid = fork();
+    if (pid < 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid > 0) {
+        exit(EXIT_SUCCESS);
+    }
+
+    umask(0);
+    chdir("/");
+
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    signal(SIGCHLD,SIG_IGN); /* ignore child */
+    signal(SIGTSTP,SIG_IGN); /* ignore tty signals */
+    signal(SIGTTOU,SIG_IGN);
+    signal(SIGTTIN,SIG_IGN);
+    signal(SIGHUP,handler); /* catch hangup signal */
+    signal(SIGTERM,handler); /* catch kill signal */
+
+    openlog("Lenovo yoga fan control", LOG_PID, LOG_DAEMON);
+}
+
+void SetPidFile(const char* Filename) {
+    FILE* f;
+
+    f = fopen(Filename, "w+");
+    if (f) {
+        fprintf(f, "%u", getpid());
+        fclose(f);
+    }
 }
 
 int main() {
+    start_daemon();
+    SetPidFile(PID_FILE);
+
     if (ioperm(0x62, 5, 1)) {
-        perror("You must run programm as root");
-        has_permissions = false;
-        exit(1);
+        syslog(LOG_ERR, "IOperm error. Can't get access to ports 0x62 to 0x66");
+        exit(EXIT_FAILURE);
     }
     has_permissions = true;
+    syslog(LOG_NOTICE, "Open ports");
 
-    struct sigaction sigint_handler;
-
-    sigint_handler.sa_handler = handler;
-    sigemptyset(&sigint_handler.sa_mask);
-    sigint_handler.sa_flags = 0;
-
-    sigaction(SIGINT, &sigint_handler, NULL);
-
-    while(true) {
+    while(!g_terminated) {
         auto_mod();
-        printf("temp=%d\n%d %d\n", read_temp(), read_register(FAN_SPEED_REG_LEFT), read_register(FAN_SPEED_REG_RIGHT));
         sleep(UPDATE_TIME);
     }
+
+    syslog(LOG_NOTICE, "Exiting");
+    closelog();
+    exit(EXIT_SUCCESS);
 }
