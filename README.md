@@ -26,7 +26,20 @@ git clone https://github.com/blan4/lenovo-yoga-fan-control.git
 cd lenovo-yoga-fan-control
 cmake
 make
-sudo ./lenovo-yoga-fan-control
+sudo ./yoga_fan
+```
+
+For running script at runtime do this:
+```bash
+sudo cp yoga_fan /usr/bin/yoga_fan
+sudo chown root /usr/bin/yoga_fan
+sudo chgrp root /usr/bin/yoga_fan
+sudo chmod 750 /etc/init.d/yoga_fan
+sudo cp yoga_fan.sh /etc/init.d/yoga_fan
+sudo chown root /etc/init.d/yoga_fan
+sudo chgrp root /etc/init.d/yoga_fan
+sudo chmod 750 /etc/init.d/yoga_fan
+sudo update-rc.d yoga_fan start 70 2 3 4 5 . stop 20 0 1 6 .
 ```
 
 ### Useful links
