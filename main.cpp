@@ -25,7 +25,7 @@ unsigned char temp_table[] = {0, MIN_SPEED, 55, 0xE0, 60, 0xAF, 65, 0x7F, 70, 0x
 
 bool has_permissions = false;
 bool g_terminated = false;
-const char PID_FILE[] = "/var/run/yoga_fan_control.pid";
+const char PID_FILE[] = "/var/run/yoga_fan.pid";
 
 unsigned char read_register(unsigned char address) {
     usleep(SLEEP_TIME);

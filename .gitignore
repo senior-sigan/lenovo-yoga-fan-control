@@ -28,3 +28,8 @@
 *.i*86
 *.x86_64
 *.hex
+
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
