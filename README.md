@@ -39,7 +39,7 @@ sudo cp yoga_fan.sh /etc/init.d/yoga_fan
 sudo chown root /etc/init.d/yoga_fan
 sudo chgrp root /etc/init.d/yoga_fan
 sudo chmod 750 /etc/init.d/yoga_fan
-sudo update-rc.d yoga_fan start 70 2 3 4 5 . stop 20 0 1 6 .
+sudo update-rc.d yoga_fan defaults
 ```
 
 ### Useful links

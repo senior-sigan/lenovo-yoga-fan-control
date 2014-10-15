@@ -1,4 +1,12 @@
 #! /bin/sh
+### BEGIN INIT INFO
+# Provides:          yoga_fan
+# Required-Start:
+# Required-Stop:
+# Default-Start:     70 2 3 4 5
+# Default-Stop:      20 0 1 6
+# Short-Description: Custom Lenovo Yoga Fan controller
+### END INIT INFO
 # Author: Ilya Siganov <ilya.blan4@gmail.com>
 # SOurce: https://github.com/blan4/lenovo-yoga-fan-control
 # Please remove the "Author" lines above and replace them
