@@ -29,17 +29,18 @@ make
 sudo ./yoga_fan
 ```
 
-For running script at runtime do this:
+For running script at runtime do this as ROOT:
 ```bash
-sudo cp yoga_fan /usr/bin/yoga_fan
-sudo chown root /usr/bin/yoga_fan
-sudo chgrp root /usr/bin/yoga_fan
-sudo chmod 750 /etc/init.d/yoga_fan
-sudo cp yoga_fan.sh /etc/init.d/yoga_fan
-sudo chown root /etc/init.d/yoga_fan
-sudo chgrp root /etc/init.d/yoga_fan
-sudo chmod 750 /etc/init.d/yoga_fan
-sudo update-rc.d yoga_fan defaults
+sudo -s
+cp yoga_fan /usr/bin/yoga_fan
+chown root /usr/bin/yoga_fan
+chgrp root /usr/bin/yoga_fan
+chmod 750 /usr/bin/yoga_fan
+cp yoga_fan.sh /etc/init.d/yoga_fan
+chown root /etc/init.d/yoga_fan
+chgrp root /etc/init.d/yoga_fan
+chmod 750 /etc/init.d/yoga_fan
+update-rc.d yoga_fan defaults
 ```
 
 ### Useful links
