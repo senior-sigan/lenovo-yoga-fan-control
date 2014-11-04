@@ -24,7 +24,7 @@ Compiling from sourse:
 sudo apt-get install gcc-4.9-base cmake git
 git clone https://github.com/blan4/lenovo-yoga-fan-control.git
 cd lenovo-yoga-fan-control
-cmake
+cmake CMakeList.txt
 make
 sudo ./yoga_fan
 ```

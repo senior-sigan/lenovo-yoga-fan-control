@@ -1,6 +1,6 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          yoga_fan
+# Provides:          yoga_fan_daemon
 # Required-Start:
 # Required-Stop:
 # Default-Start:     70 2 3 4 5
