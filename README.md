@@ -49,3 +49,10 @@ If you use system.d you should copy service file yoga_fan.service to /etc/system
 [Kernel module for Asus eeePc](https://code.google.com/p/eeepc-linux/wiki/EmbeddedController)
 
 [NBFC](http://www.computerbase.de/forum/showthread.php?t=1070494)
+
+
+###TODO:
+- [x] add daemon for ubuntu
+- [x] add daemon for systemd based
+- [ ] add config file
+- [ ] widget with fan speed and temperature
