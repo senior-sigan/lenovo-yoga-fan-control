@@ -17,7 +17,7 @@ This program works in automatic mode. It's controling Fan with my custom temp ta
 
 ### HowTo use
 
-You can compile program from source or use latest release(builded in Ubuntu 14.04).
+You can compile program from source.
 
 Compiling from sourse:
 ```bash
@@ -32,16 +32,11 @@ sudo ./yoga_fan
 For running script at runtime do this as ROOT:
 ```bash
 sudo -s
-cp yoga_fan /usr/bin/yoga_fan
-chown root /usr/bin/yoga_fan
-chgrp root /usr/bin/yoga_fan
-chmod 750 /usr/bin/yoga_fan
-cp yoga_fan.sh /etc/init.d/yoga_fan
-chown root /etc/init.d/yoga_fan
-chgrp root /etc/init.d/yoga_fan
-chmod 750 /etc/init.d/yoga_fan
-update-rc.d yoga_fan defaults
+make install
+update-rc.d yoga_fan_daemon defaults
 ```
+
+If you use system.d you should copy service file yoga_fan.service to /etc/systemd/system/ directory. After that enable service by ``sudo systemctl enable yoga_fan.service``
 
 ### Useful links
 
