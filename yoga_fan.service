@@ -1,0 +1,7 @@
+[Unit]
+Description=Yoga Fan Control
+[Service]
+Type=forking
+ExecStart=/usr/bin/yoga_fan
+[Install]
+WantedBy=multi-user.target
