@@ -56,3 +56,4 @@ If you use system.d you should copy service file yoga_fan.service to /etc/system
 - [x] add daemon for systemd based
 - [ ] add config file
 - [ ] widget with fan speed and temperature
+- [ ] add fan device output and input to /sys/class/hwmon
