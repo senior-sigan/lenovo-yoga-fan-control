@@ -21,7 +21,7 @@ You can compile program from source.
 
 Compiling from sourse:
 ```bash
-sudo apt-get install gcc-4.9-base cmake git
+sudo apt-get install gcc-4.9-base cmake git g++
 git clone https://github.com/blan4/lenovo-yoga-fan-control.git
 cd lenovo-yoga-fan-control
 cmake CMakeLists.txt
