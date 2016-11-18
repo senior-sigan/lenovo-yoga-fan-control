@@ -20,8 +20,16 @@
 #define SLEEP_TIME 10000 // Wait until EC parse command in microseconds
 #define UPDATE_TIME 5 // How often check temp and fix fan speed in seconds
 
-//odd index is fan speed(1..255), even index is temp. Critical temp is 85
-unsigned char temp_table[] = {0, MIN_SPEED, 55, 0xE0, 60, 0xAF, 65, 0x7F, 70, 0x4B, 75, 0x33, 80, 0x1A, CRITICAL_TEMP, MAX_SPEED};
+//               TEMP IN CELSIUS, SPEED 255-1 (lower value is faster RPM)
+unsigned char temp_table[] = { 0, MIN_SPEED,
+                              55, 200,
+                              60, 195,
+                              65, 180,
+                              70, 150,
+                              75, 100,
+                              80, 20,
+                   CRITICAL_TEMP, MAX_SPEED
+};
 
 bool has_permissions = false;
 bool g_terminated = false;
@@ -71,8 +79,8 @@ void auto_mod() {
     }
     for (unsigned int i = 0; i < sizeof(temp_table); i += 2) {
         if (temp < temp_table[i]) {
-            write_register(temp_table[i-1], FAN_SPEED_REG_RIGHT);
-            write_register(temp_table[i-1], FAN_SPEED_REG_LEFT);
+            write_register(temp_table[i+1], FAN_SPEED_REG_RIGHT);
+            write_register(temp_table[i+1], FAN_SPEED_REG_LEFT);
             return;
         }
     }
