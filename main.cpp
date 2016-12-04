@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/syslog.h>
 
@@ -19,14 +20,16 @@
 #define CRITICAL_TEMP 85
 #define SLEEP_TIME 10000 // Wait until EC parse command in microseconds
 #define UPDATE_TIME 5 // How often check temp and fix fan speed in seconds
+#define READ_ERROR_TEMP 80 // Assume temperature to this when read error
+#define SYS_HWMON_VALUE_SCALE 1000 // Scale factor for sys hwmon output values
 
 //               TEMP IN CELSIUS, SPEED 255-1 (lower value is faster RPM)
 unsigned char temp_table[] = { 0, MIN_SPEED,
                               55, 200,
-                              60, 195,
-                              65, 180,
-                              70, 150,
-                              75, 100,
+                              60, 180,
+                              65, 160,
+                              70, 130,
+                              75, 90,
                               80, 20,
                    CRITICAL_TEMP, MAX_SPEED
 };
@@ -51,6 +54,35 @@ unsigned char read_temp() {
     return read_register(CPU_TEMP_0);
 }
 
+unsigned char read_temp_sys() {
+    int res = 0;
+    double value;
+    FILE *f;
+
+    if((f = fopen("/sys/class/hwmon/hwmon1/temp2_input", "r"))) {
+        errno = 0;
+        res = fscanf(f, "%lf", &value);
+
+        if (res == EOF && errno == EIO) {
+            return READ_ERROR_TEMP;
+        }
+        else if (res != 1) {
+            return READ_ERROR_TEMP;
+        }
+
+        res = fclose(f);
+        if (res == EOF && errno == EIO) {
+            return READ_ERROR_TEMP;
+        }
+
+        value /= SYS_HWMON_VALUE_SCALE;
+        return (unsigned char)value;
+    }
+    else {
+        return READ_ERROR_TEMP;
+    }
+}
+
 void write_register(unsigned char value, unsigned char address) {
     usleep(SLEEP_TIME);
     outb(WRITE_EC, EC_CMD);
@@ -72,7 +104,8 @@ void silence_mode() {
 }
 
 void auto_mod() {
-    unsigned char temp = read_temp();
+    unsigned char temp = read_temp_sys();
+    // syslog(LOG_NOTICE, "Read temp: %d", temp);
     if (temp < 0) {
         silence_mode();
         return;

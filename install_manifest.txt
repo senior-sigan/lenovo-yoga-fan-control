@@ -1,0 +1,2 @@
+/usr/local/usr/bin/yoga_fan
+/usr/local/etc/init.d/yoga_fan_daemon
